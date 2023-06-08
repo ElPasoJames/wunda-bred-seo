@@ -1,8 +1,20 @@
-import os
-from flask import Flask, render_template, request
-from firebase_admin import auth, credentials, initialize_app
+import requests
+from flask import Flask, flash, redirect, render_template, session, request
+import firebase_admin
+from firebase_admin import auth, credentials
+from firebase_admin.exceptions import FirebaseError
+
+from inspect import getmembers
+from pprint import pprint
+
+cred = credentials.Certificate('json/fbAdminConfig.json')
+firebase_admin.initialize_app(cred)
 
 app = Flask(__name__)
+app.secret_key = 'gpt-secret-key'
+
+API_KEY = 'AIzaSyCLEPrZxeYkN73c5vAb-BBqdn2dVAxyJ0Q'
+AUTH_API_BASE_URL = f'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={API_KEY}'
 
 @app.route('/')
 def index():
@@ -14,20 +26,30 @@ def login():
         email = request.form['email']
         password = request.form['password']
 
-        try:
-            user = auth.get_user_by_email(email)
-            auth.sign_in_with_email_and_password(email, password)
-            flash('Logged in successfully!', 'success')
-            return redirect(url_for('dashboard'))
-        except:
-            flash('Invalid email or password', 'error')
-    
+        # Authenticate the user's email and password with Firebase
+        response = requests.post(f'{AUTH_API_BASE_URL}', json={
+            'email': email,
+            'password': password,
+            'returnSecureToken': True
+        })
+
+        if response.ok:
+            # Store the Firebase ID token in a session variable or cookie
+            session['user'] = response.json()['localId']
+
+            # Redirect to a protected page that requires authentication
+            return redirect('/')
+        else:
+            # Handle any errors that occur during authentication
+            # error_message = response.json().get('error', {}).get('message', 'Invalid email or password.')
+            error_message = 'Invalid email or password.'
+            flash(error_message)
+
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        name = request.form['name']
         email = request.form['email']
         password = request.form['password']
 
@@ -35,12 +57,13 @@ def register():
             user = auth.create_user(
                 email=email,
                 password=password,
-                display_name=name
             )
+            session['user'] = user.uid
             flash('Registered successfully!', 'success')
-            return redirect(url_for('dashboard'))
-        except:
-            flash('Registration failed', 'error')
+            return redirect('/')
+        except FirebaseError as e:
+            error = str(e)
+            flash(error, 'error')
 
     return render_template('register.html')
 

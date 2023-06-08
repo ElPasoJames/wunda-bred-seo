@@ -73,6 +73,18 @@
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-6">
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <div>
+                            <ul class=flashes>
+                            {% for message in messages %}
+                                <li>{{ message }}</li>
+                            {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
                 <form class="card p-4 opacity-50 text-light" action="{{ url_for('login') }}" method="POST">
                     <div class="form-group">
                         <label for="email">Email:</label>
