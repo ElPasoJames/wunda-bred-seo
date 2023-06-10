@@ -1,8 +1,9 @@
 import requests
-from flask import Flask, flash, redirect, render_template, session, request
+from flask import Flask, flash, redirect, render_template, session, request, url_for
 import firebase_admin
 from firebase_admin import auth, credentials
 from firebase_admin.exceptions import FirebaseError
+import firebase_admin.auth as firebase_auth
 
 from inspect import getmembers
 from pprint import pprint
@@ -18,7 +19,7 @@ AUTH_API_BASE_URL = f'https://identitytoolkit.googleapis.com/v1/accounts:signInW
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('dashboard.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -36,6 +37,7 @@ def login():
         if response.ok:
             # Store the Firebase ID token in a session variable or cookie
             session['user'] = response.json()['localId']
+            session['logged_in'] = True
 
             # Redirect to a protected page that requires authentication
             return redirect('/')
@@ -59,13 +61,25 @@ def register():
                 password=password,
             )
             session['user'] = user.uid
+            session['logged_in'] = True
+
             flash('Registered successfully!', 'success')
             return redirect('/')
         except FirebaseError as e:
             error = str(e)
             flash(error, 'error')
 
+            # Pass the error message to the template
+            return render_template('register.html', error=error)
+
     return render_template('register.html')
+
+@app.route('/logout')
+def logout():
+    # Clear the session data and log the user out of Firebase
+    session.pop('logged_in', None)
+    firebase_auth.revoke_refresh_tokens(session['user'])
+    return redirect('/')    
 
 if __name__ == '__main__':
     # The port our Flask app will run on

@@ -1,111 +1,72 @@
-<!doctype html>
-<html lang="en">
+{% extends "layout.html" %}
+{% block content %}
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Algorithmic SEC filings">
-    <meta name="author" content="Aelo">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='logo.svg') }}">
-
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-
-    <title>Simple Flask</title>
-
-    <style>
-        /* Set background image */
-        body {
-            background-image: url('../static/sean-pollock-PhYq704ffdA-unsplash.jpg');
-            background-size: cover;
-        }
-
-        .card {
-            background-color: rgba(52, 58, 64, 0.9);
-        }
-
-
-        .form-control::placeholder {
-            color: aliceblue;
-        }
-
-        .form-control,
-        .form-control:focus,
-        .form-control option {
-            color: aliceblue;
-            background-color: rgb(71, 79, 92);
-        }
-    </style>
-
-<body>
-
-    <!-- Header -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a class="navbar-brand" href="#"><img src="../static/logo.svg" alt="" height="25px"></a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item active">
-                    <a class="nav-link" href="/">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Pricing</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">LinK 1</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Link 2</a>
-                </li>
-            </ul>
-        </div>
-        <ul class="navbar-nav ml-auto">
-
-            <li class="nav-item">
-                <a class="nav-link" href="/login">Log In</a>
-            </li>
-        </ul>
-    </nav>
-
-    <!-- Form -->
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                        <div>
-                            <ul class=flashes>
-                            {% for message in messages %}
-                                <li>{{ message }}</li>
-                            {% endfor %}
-                            </ul>
-                        </div>
-                    {% endif %}
-                {% endwith %}
-                
-                <form class="card p-4 opacity-50 text-light" action="{{ url_for('register') }}" method="POST">
-                    <div class="form-group">
-                        <label for="email">Email:</label>
-                        <input type="email" class="form-control" id="email" name="email" placeholder="Email">
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password:</label>
-                        <input type="password" class="form-control" id="password" name="password"
-                            placeholder="Password">
-                    </div>
-                    <div class="form-group mb-5">
-                        <label for="confirm_password">Confirm Password:</label>
-                        <input type="password" class="form-control" id="confirm_password" name="confirm_password"
-                            placeholder="Confirm Password">
-                    </div>
-
-                    <button type="submit" class="btn btn-success btn-block">Register</button>
-                </form>
+<!-- Form -->
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class="alert alert-warning flashes">
+                {% for message in messages %}
+                {{ message }}
+                {% endfor %}
             </div>
+            {% endif %}
+            {% endwith %}
+
+            <div class="alert alert-warning d-none" id="passwordAlert">
+            </div>
+
+            <form class="card p-4 opacity-50" action="{{ url_for('register') }}" method="POST">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Password"
+                        required>
+                </div>
+                <div class="form-group mb-5">
+                    <label for="confirm_password">Confirm Password:</label>
+                    <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                        placeholder="Confirm Password" required>
+                </div>
+
+                <button type="submit" class="btn btn-success btn-block">Register</button>
+            </form>
         </div>
     </div>
+</div>
 </body>
 
-</html>
+<script>
+    const password = document.getElementById("password");
+    const confirm_password = document.getElementById("confirm_password");
+
+    function validatePassword() {
+        if (password.value !== confirm_password.value) {
+            const myDiv = document.getElementById("passwordAlert");
+            myDiv.classList.add("d-block");
+            myDiv.innerHTML = "Password and confirm password must be same!"
+            return false;
+        } else if (password.value.length < 6) {
+            const myDiv = document.getElementById("passwordAlert");
+            myDiv.classList.add("d-block");
+            myDiv.innerHTML = "Password must be at least 6 characters long."
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    document.querySelector("form").addEventListener("submit", function (event) {
+        if (!validatePassword()) {
+            event.preventDefault();
+        }
+    });
+
+</script>
+
+{% endblock %}
