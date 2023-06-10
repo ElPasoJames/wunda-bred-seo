@@ -6,7 +6,7 @@
         <div class="col-md-6">
             {% with messages = get_flashed_messages() %}
             {% if messages %}
-            <div class="alert alert-info flashes">
+            <div class="alert alert-warning flashes">
                 {% for message in messages %}
                 {{ message }}
                 {% endfor %}
