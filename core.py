@@ -1,22 +1,3 @@
-import openai
-from flask import render_template, request
-
-
-API_KEY = 'xxxxxxd
-openai.api_key = API_KEY
-model_id = 'gpt-3.5-turbo-0301'
-
-def chatgpt_conversation(conversation_log):
-    response = openai.ChatCompletion.create(
-        model=model_id,
-        messages=conversation_log
-    )
-
-    conversation_log.append({
-        'role': response.choices[0].message.role, 
-        'content': response.choices[0].message.content.strip()
-    })
-    return conversation_log
 
 def process_gpt(inputs):
     input1 = inputs[0]
