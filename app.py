@@ -1,14 +1,15 @@
+
+import os
 import requests
 from flask import Flask, flash, redirect, render_template, session, request, url_for
 import firebase_admin
 from firebase_admin import auth, credentials
 from firebase_admin.exceptions import FirebaseError
-import firebase_admin.auth as firebase_auth
+import core
 
-from inspect import getmembers
-from pprint import pprint
-
-cred = credentials.Certificate('json/fbAdminConfig.json')
+current_folder = os.path.dirname(os.path.abspath(__file__))
+file_name = current_folder + "/json/fbAdminConfig.json"
+cred = credentials.Certificate(file_name)
 firebase_admin.initialize_app(cred)
 
 app = Flask(__name__)
@@ -17,8 +18,17 @@ app.secret_key = 'gpt-secret-key'
 API_KEY = 'AIzaSyCLEPrZxeYkN73c5vAb-BBqdn2dVAxyJ0Q'
 AUTH_API_BASE_URL = f'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={API_KEY}'
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
+    if request.method == 'POST':
+        input1 = request.form['input1']
+        input2 = request.form['input2']
+        input3 = request.form['input3']
+        inputs = [input1, input2, input3]
+        result = core.process_gpt(inputs)
+
+        flash(result)
+
     return render_template('dashboard.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -46,7 +56,6 @@ def login():
             # error_message = response.json().get('error', {}).get('message', 'Invalid email or password.')
             error_message = 'Invalid email or password.'
             flash(error_message)
-
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -56,11 +65,11 @@ def register():
         password = request.form['password']
 
         try:
-            user = auth.create_user(
+            auth.create_user(
                 email=email,
                 password=password,
             )
-            session['user'] = user.uid
+            # session['user'] = user.uid
             session['logged_in'] = True
 
             flash('Registered successfully!', 'success')
@@ -78,9 +87,10 @@ def register():
 def logout():
     # Clear the session data and log the user out of Firebase
     session.pop('logged_in', None)
-    firebase_auth.revoke_refresh_tokens(session['user'])
+    # auth.revoke_refresh_tokens(session['user'])
     return redirect('/')    
 
 if __name__ == '__main__':
-    # The port our Flask app will run on
-    app.run(debug=True, port=6100)
+    app.run(debug=True)
+
+
