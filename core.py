@@ -2,7 +2,7 @@ import openai
 from flask import render_template, request
 
 
-API_KEY = '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'
+API_KEY = 'xxxxxxd
 openai.api_key = API_KEY
 model_id = 'gpt-3.5-turbo-0301'
 
